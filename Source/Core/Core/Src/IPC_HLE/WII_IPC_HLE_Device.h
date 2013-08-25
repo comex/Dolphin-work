@@ -97,8 +97,7 @@ public:
 
 	IWII_IPC_HLE_Device(const std::string& _rName, bool _Hardware = true) :
 		m_Name(_rName),
-		m_Hardware(_Hardware),
-		m_RefCount(0)
+		m_Hardware(_Hardware)
 	{
 	}
 
@@ -109,17 +108,16 @@ public:
 	virtual void DoState(PointerWrap& p)
 	{}
 
-	// Only use when using DoState to initialize rather than Open
+	// Create also semantically references the device.
 	void Ref()
-	{
-		m_RefCount++;
-	}
+	{}
+	virtual void Unref()
+	{}
 
 	const std::string& GetDeviceName() const { return m_Name; }
 
 	virtual u32 Open(u32 _CommandAddress, u32 _Mode)
 	{
-		m_RefCount++;
 		return FS_SUCCESS;
 	}
 
@@ -130,10 +128,6 @@ public:
 			Memory::Write_U32(FS_SUCCESS, _CommandAddress + 4);
 		}
 
-		if (--m_RefCount == 0)
-		{
-			delete this;
-		}
 		return true;
 	}
 
@@ -216,6 +210,8 @@ protected:
 	}
 };
 
+extern std::vector<std::pair<void (*)(void*), void*>> g_SingletonDestructors;
+
 template <typename T>
 class CWII_IPC_HLE_Device_Singleton
 {
@@ -224,11 +220,7 @@ public:
     {
         if (Name == T::GetBaseName())
         {
-            if (s_Instance == NULL)
-            {
-                s_Instance = new T(Name);
-            }
-            return s_Instance;
+			return MakeInstance();
         }
         return NULL;
     }
@@ -237,13 +229,15 @@ public:
 		if (s_Instance == NULL)
 		{
 			s_Instance = new T(T::GetBaseName());
+			g_SingletonDestructors.push_back(std::make_pair(DeleteMe, s_Instance));
 		}
 		return s_Instance;
 	}
-    virtual ~CWII_IPC_HLE_Device_Singleton()
-    {
+	static void DeleteMe(void* self)
+	{
+		delete (T*) self;
         s_Instance = NULL;
-    }
+	}
 private:
     static T* s_Instance;
 };

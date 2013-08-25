@@ -83,6 +83,8 @@ public:
 	CWII_IPC_HLE_Device_usb_oh0_dev(const std::string& _rDeviceName, u16 Vid, u16 Pid);
 	~CWII_IPC_HLE_Device_usb_oh0_dev();
 
+	virtual u32 Open(u32 _CommandAddress, u32 _Mode);
+	virtual void Unref();
 	virtual bool IOCtl(u32 _CommandAddress);
 	virtual bool IOCtlV(u32 _CommandAddress);
 

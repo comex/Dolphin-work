@@ -75,6 +75,7 @@ static const TCreateFunc g_DeviceCreateFuncs[] = {
 	CWII_IPC_HLE_Device_usb_hid::Create,
 	CWII_IPC_HLE_Device_usb_kbd::Create,
 	CWII_IPC_HLE_Device_usb_oh0::Create,
+	CWII_IPC_HLE_Device_usb_oh0_dev::Create,
 	CWII_IPC_HLE_Device_usb_oh1::Create,
 	CWII_IPC_HLE_Device_usb_oh1_57e_305::Create,
 	0
@@ -82,8 +83,7 @@ static const TCreateFunc g_DeviceCreateFuncs[] = {
 
 #define IPC_MAX_FDS 0x18
 IWII_IPC_HLE_Device* g_FdMap[IPC_MAX_FDS];
-typedef std::map<IWII_IPC_HLE_Device*, u32 /* instances */> TDeviceMap;
-TDeviceMap g_Devices;
+std::map<IWII_IPC_HLE_Device*, u32 /* instances */> g_Devices;
 
 typedef std::deque<u32> ipc_msg_queue;
 static ipc_msg_queue request_queue;	// ppc -> arm
@@ -121,9 +121,11 @@ void Reset(bool _bHard)
 		{
 			// close all files and delete their resources
 			g_FdMap[i]->Close(0, true);
+			g_FdMap[i]->Unref();
 		}
 		g_FdMap[i] = NULL;
 	}
+	g_Devices.clear();
 
 	request_queue.clear();
 	reply_queue.clear();
@@ -134,6 +136,11 @@ void Reset(bool _bHard)
 void Shutdown()
 {
 	Reset(true);
+	for (auto itr = g_SingletonDestructors.begin(); itr != g_SingletonDestructors.end(); ++itr)
+	{
+		itr->first(itr->second);
+	}
+	g_SingletonDestructors.clear();
 }
 
 void SetDefaultContentFile(const std::string& _rFilename)
@@ -208,8 +215,10 @@ void DoState(PointerWrap &p)
 			if (Idx != -1)
 			{
 				Device = DeviceList[Idx];
-				Device->Ref();
-				g_Devices[Device]++;
+				if (g_Devices[Device]++ != 0)
+				{
+					Device->Ref();
+				}
 			}
 			g_FdMap[i] = Device;
 		}
@@ -220,7 +229,7 @@ void DoState(PointerWrap &p)
 		p.Do(Count);
 		std::map<IWII_IPC_HLE_Device*, u32> Indices;
 		u32 i = 0;
-		for (TDeviceMap::iterator itr = g_Devices.begin(); itr != g_Devices.end(); ++itr)
+		for (auto itr = g_Devices.begin(); itr != g_Devices.end(); ++itr)
 		{
 			IWII_IPC_HLE_Device* Device = itr->first;
 			std::string Name = Device->GetDeviceName();
@@ -299,6 +308,7 @@ void ExecuteCommand(u32 _Address)
 				g_Devices.erase(pDevice);
 			}
 			CmdSuccess = pDevice->Close(_Address);
+			pDevice->Unref();
 		}
 		else
 		{
@@ -450,7 +460,7 @@ void Update()
 void UpdateDevices()
 {
 	// Check if a hardware device must be updated
-	for (TDeviceMap::const_iterator itr = g_Devices.begin(); itr != g_Devices.end(); ++itr)
+	for (auto itr = g_Devices.begin(); itr != g_Devices.end(); ++itr)
 	{
 		if (itr->first->Update())
 		{
@@ -461,4 +471,7 @@ void UpdateDevices()
 
 
 } // end of namespace WII_IPC_HLE_Interface
+
+// defined in Device.h
+std::vector<std::pair<void (*)(void*), void*>> g_SingletonDestructors;
 

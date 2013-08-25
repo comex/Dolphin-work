@@ -67,7 +67,7 @@ bool CWII_IPC_HLE_Device_usb_oh0::MatchDevice(USBInterface::USBDeviceDescriptorE
     Memory::Write_U32(0, CommandAddress + 4);
     WII_IPC_HLE_Interface::EnqReply(CommandAddress);
     m_DeviceInsertionHooks.erase(iitr);
-    Close(0, true);
+    Unref();
     return true;
 }
 
@@ -75,16 +75,16 @@ void CWII_IPC_HLE_Device_usb_oh0::USBDevicesChanged(USBInterface::TDeviceList& L
 {
     DEBUG_LOG(WII_IPC_USB, "oh0 devices changed");
 	std::set<u32> NewSeenDevices;
-	for (USBInterface::TDeviceList::iterator itr = List.begin(); itr != List.end(); ++itr)
+	for (auto itr = List.begin(); itr != List.end(); ++itr)
 	{
 		USBInterface::USBDeviceDescriptorEtc* Desc = &*itr;
 		NewSeenDevices.emplace(Desc->Uid);
-		std::set<u32>::iterator sitr = m_SeenDevices.find(Desc->Uid);
+		auto sitr = m_SeenDevices.find(Desc->Uid);
 		if (sitr == m_SeenDevices.end())
 		{
 			// New device inserted
             DEBUG_LOG(WII_IPC_USB, "oh0 new device %x, %zu hooks", Desc->Uid, m_DeviceInsertionHooks.size());
-			for (TDeviceInsertionHooks::iterator iitr = m_DeviceInsertionHooks.begin();
+			for (auto iitr = m_DeviceInsertionHooks.begin();
 				 iitr != m_DeviceInsertionHooks.end(); ++iitr)
 			{
                 if (MatchDevice(Desc, iitr))
@@ -115,7 +115,7 @@ bool CWII_IPC_HLE_Device_usb_oh0::IOCtl(u32 _CommandAddress)
 	case USBV0_ROOT_IOCTL_CANCELINSERTIONNOTIFY:
 	{
 		u32 Id = Memory::Read_U32(BufferIn);
-		TDeviceInsertionHooks::iterator itr = m_DeviceInsertionHooks.find(Id);
+		auto itr = m_DeviceInsertionHooks.find(Id);
 		if (itr != m_DeviceInsertionHooks.end())
 		{
 			u32 CommandAddress = itr->second.second;
@@ -142,12 +142,12 @@ bool CWII_IPC_HLE_Device_usb_oh0::IOCtl(u32 _CommandAddress)
 u32 CWII_IPC_HLE_Device_usb_oh0::AddDeviceInsertionHook(SVidPidClass& Match, u32 _CommandAddress)
 {
     u32 Id = ++m_InsertionHookId;
-    TDeviceInsertionHooks::iterator iitr = m_DeviceInsertionHooks.insert(std::make_pair(Id, std::make_pair(Match, _CommandAddress))).first;
-    m_RefCount++;
+	auto iitr = m_DeviceInsertionHooks.insert(std::make_pair(Id, std::make_pair(Match, _CommandAddress))).first;
+    Ref();
 
     USBInterface::TDeviceList& List = USBInterface::GetDeviceList();
     DEBUG_LOG(WII_IPC_USB, "%zu existing devices", List.size());
-    for (USBInterface::TDeviceList::iterator it = List.begin(); it != List.end(); ++it)
+    for (auto it = List.begin(); it != List.end(); ++it)
     {
         DEBUG_LOG(WII_IPC_USB, "trying to match");
         if (MatchDevice(&*it, iitr))
@@ -181,7 +181,7 @@ bool CWII_IPC_HLE_Device_usb_oh0::IOCtlV(u32 _CommandAddress)
 		SDevList* OutBuf = (SDevList*) Memory::GetPointer(CommandBuffer.PayloadBuffer[1].m_Address);
 		USBInterface::TDeviceList& List = USBInterface::GetDeviceList();
 		u8 RealCount = 0;
-		for (USBInterface::TDeviceList::iterator it = List.begin(); it != List.end() && Count; ++it)
+		for (auto it = List.begin(); it != List.end() && Count; ++it)
 		{
 			if (!Class || it->bDeviceClass == Class)
 			{
@@ -271,6 +271,20 @@ CWII_IPC_HLE_Device_usb_oh0_dev::~CWII_IPC_HLE_Device_usb_oh0_dev()
 	{
 		m_Device->Close();
 	}
+}
+
+u32 CWII_IPC_HLE_Device_usb_oh0_dev::Open(u32 _CommandAddress, u32 _Mode)
+{
+	if (!m_Device)
+	{
+		return FS_ENOENT;
+	}
+	return IWII_IPC_HLE_Device::Open(_CommandAddress, _Mode);
+}
+
+void CWII_IPC_HLE_Device_usb_oh0_dev::Unref()
+{
+	delete this;
 }
 
 bool CWII_IPC_HLE_Device_usb_oh0_dev::IOCtl(u32 _CommandAddress)
@@ -410,7 +424,7 @@ void CWII_IPC_HLE_Device_usb_oh0_dev::USBDevicesChanged(USBInterface::TDeviceLis
 		return;
 	}
     u32 Uid = m_Uid;
-	for (USBInterface::TDeviceList::iterator itr = List.begin(); itr != List.end(); ++itr)
+	for (auto itr = List.begin(); itr != List.end(); ++itr)
 	{
 		if (itr->Uid == Uid)
 		{

@@ -280,12 +280,11 @@ enum {
 
 	volatile bool g_ShouldScan;
 	int g_USBInterfaceEvent;
-	TDeviceList g_DeviceList;
 
 	void ReadDeviceState(PointerWrap& p, IUSBDeviceClient* Client);
 
 // public
-	TDeviceList& GetDeviceList() { return g_DeviceList; }
+	TDeviceList& GetDeviceList();
 	void RefInterface();
 	void ResetInterface();
 	void RegisterDeviceChangeClient(IUSBDeviceChangeClient* Client);

@@ -19,6 +19,7 @@ IUSBController* g_Controllers[NumControllerIds];
 int g_InterfaceRefCount;
 std::set<IUSBDeviceChangeClient*>* g_DeviceChangeClients;
 std::set<u32>* g_OpenUids;
+TDeviceList* g_DeviceList;
 
 CUSBRequest::CUSBRequest(IUSBDevice* Device, void* UserData, s16 Endpoint, bool IsFake)
 : m_Endpoint(Endpoint), m_IsFake(IsFake), m_Device(Device)
@@ -117,21 +118,21 @@ void IUSBDevice::Close()
 
 static void MakeDeviceList()
 {
-	g_DeviceList.clear();
+	g_DeviceList->clear();
 	for (int i = 0; i < NumControllerIds; i++)
 	{
 		IUSBController* Controller = g_Controllers[i];
 		if (Controller)
 		{
-			Controller->UpdateDeviceList(g_DeviceList);
+			Controller->UpdateDeviceList(*g_DeviceList);
 		}
 	}
-	for (size_t i = 0; i < g_DeviceList.size(); i++)
+	for (size_t i = 0; i < g_DeviceList->size(); i++)
 	{
-		USBDeviceDescriptorEtc* Desc = &g_DeviceList[i];
+		USBDeviceDescriptorEtc* Desc = &(*g_DeviceList)[i];
 		if (g_OpenUids->find(Desc->Uid) != g_OpenUids->end())
 		{
-			g_DeviceList.erase(g_DeviceList.begin() + i);
+			g_DeviceList->erase(g_DeviceList->begin() + i);
 			i--;
 		}
 	}
@@ -160,8 +161,8 @@ static void USBInterfaceCallback(u64 UserData, int CyclesLate)
 			{
 				IUSBDeviceChangeClient* Client = *itr;
 				++itr;
-				// This might cause the previous iterator to be invalidated
-				Client->USBDevicesChanged(g_DeviceList);
+				// This might cause the previous iterator to be invalidated.
+				Client->USBDevicesChanged(*g_DeviceList);
 			}
 		}
 		break;
@@ -203,6 +204,11 @@ void IUSBDevice::WriteDeviceState(PointerWrap& p)
 	WriteDeviceStateInList(p, m_PendingRequests);
 }
 
+TDeviceList& GetDeviceList()
+{
+	return *g_DeviceList;
+}
+
 void RefInterface()
 {
 	if (!g_PendingDevices)
@@ -213,6 +219,7 @@ void RefInterface()
 		g_DeviceChangeClients = new std::set<IUSBDeviceChangeClient*>;
 		g_OpenUids = new std::set<u32>;
 		g_USBInterfaceEvent = CoreTiming::RegisterEvent("USBInterface", USBInterfaceCallback);
+		g_DeviceList = new TDeviceList;
 	}
 
 	if (g_InterfaceRefCount++ == 0) 
@@ -273,7 +280,7 @@ void DeregisterDeviceChangeClient(IUSBDeviceChangeClient* Client)
 
 std::pair<u32, IUSBDevice*> OpenVidPid(u16 Vid, u16 Pid, IUSBDeviceClient* Client)
 {
-	TDeviceList List = g_DeviceList;
+	TDeviceList List = *g_DeviceList;
 	for (auto itr = List.begin(); itr != List.end(); ++itr)
 	{
 		if (itr->idVendor == Vid && itr->idProduct == Pid)

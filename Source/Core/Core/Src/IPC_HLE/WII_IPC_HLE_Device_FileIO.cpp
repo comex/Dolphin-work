@@ -72,7 +72,6 @@ u32 CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
 		ReturnValue = FS_FILE_NOT_EXIST;
 	}
 
-	IWII_IPC_HLE_Device::Open(_CommandAddress, _Mode);
 	return ReturnValue;
 }
 
