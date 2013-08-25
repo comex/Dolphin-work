@@ -174,6 +174,10 @@ inline u32 swap24(const u8* _data) {return (_data[0] << 16) | (_data[1] << 8) | 
 inline u16 swap16(u16 _data) {return _byteswap_ushort(_data);}
 inline u32 swap32(u32 _data) {return _byteswap_ulong (_data);}
 inline u64 swap64(u64 _data) {return _byteswap_uint64(_data);}
+#elif __GNUC__
+inline u16 swap16(u16 _data) {return __builtin_bswap16(_data);}
+inline u32 swap32(u32 _data) {return __builtin_bswap32(_data);}
+inline u64 swap64(u64 _data) {return __builtin_bswap64(_data);}
 #elif _M_ARM
 inline u16 swap16 (u16 _data) { u32 data = _data; __asm__ ("rev16 %0, %1\n" : "=l" (data) : "l" (data)); return (u16)data;} 
 inline u32 swap32 (u32 _data) {__asm__ ("rev %0, %1\n" : "=l" (_data) : "l" (_data)); return _data;} 
@@ -182,13 +186,6 @@ inline u64 swap64(u64 _data) {return ((u64)swap32(_data) << 32) | swap32(_data >
 inline u16 swap16(u16 _data) {return bswap_16(_data);}
 inline u32 swap32(u32 _data) {return bswap_32(_data);}
 inline u64 swap64(u64 _data) {return bswap_64(_data);}
-#elif __APPLE__
-inline __attribute__((always_inline)) u16 swap16(u16 _data)
-	{return (_data >> 8) | (_data << 8);}
-inline __attribute__((always_inline)) u32 swap32(u32 _data)
-	{return __builtin_bswap32(_data);}
-inline __attribute__((always_inline)) u64 swap64(u64 _data)
-	{return __builtin_bswap64(_data);}
 #elif __FreeBSD__
 inline u16 swap16(u16 _data) {return bswap16(_data);}
 inline u32 swap32(u32 _data) {return bswap32(_data);}
@@ -203,6 +200,15 @@ inline u64 swap64(u64 data) {return ((u64)swap32(data) << 32) | swap32(data >> 3
 inline u16 swap16(const u8* _pData) {return swap16(*(const u16*)_pData);}
 inline u32 swap32(const u8* _pData) {return swap32(*(const u32*)_pData);}
 inline u64 swap64(const u8* _pData) {return swap64(*(const u64*)_pData);}
+
+// These silly definitions are for when Dolphin gets run on a certain
+// big endian system and "swap" needs to become a no-op.
+#define reallyswap16 swap16
+#define reallyswap32 swap32
+#define reallyswap64 swap64
+inline u16 le16(u16 _data) { return _data; }
+inline u32 le32(u32 _data) { return _data; }
+inline u64 le64(u64 _data) { return _data; }
 
 template <int count>
 void swap(u8*);
@@ -230,10 +236,16 @@ inline void swap<8>(u8* data)
 }
 
 template <typename T>
+inline T FromLittleEndian(T data)
+{
+	return data;
+}
+#define ToLittleEndian FromLittleEndian
+
+template <typename T>
 inline T FromBigEndian(T data)
 {
 	//static_assert(std::is_arithmetic<T>::value, "function only makes sense with arithmetic types");
-	
 	swap<sizeof(data)>(reinterpret_cast<u8*>(&data));
 	return data;
 }

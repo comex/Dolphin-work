@@ -14,7 +14,7 @@
 #include "WII_IPC_HLE_WiiMote.h"
 #include "../HW/Wiimote.h"
 
-struct SQueuedEvent
+struct SQueuedEvent : public TotallyPod
 {
 	u8 m_buffer[1024];
 	u32 m_size;
@@ -38,13 +38,6 @@ struct SQueuedEvent
 	{
 	}
 };
-
-// Hacks for ChunkFile to accept SQueuedEvent as POD
-namespace std
-{
-template <>
-struct is_pod<SQueuedEvent> : std::true_type {};
-}
 
 // Important to remember that this class is for /dev/usb/oh1/57e/305 ONLY
 // /dev/usb/oh1 -> internal usb bus

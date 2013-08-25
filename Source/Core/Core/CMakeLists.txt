@@ -118,6 +118,7 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/HW/Sram.cpp
 			Src/HW/StreamADPCM.cpp
 			Src/HW/SystemTimers.cpp
+			Src/HW/USBInterface.cpp
 			Src/HW/VideoInterface.cpp
 			Src/HW/WII_IOB.cpp
 			Src/HW/WII_IPC.cpp
@@ -143,6 +144,9 @@ set(SRCS	Src/ActionReplay.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_net.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.cpp
+			Src/IPC_HLE/WII_IPC_HLE_Device_usb_hid.cpp
+			Src/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.cpp
+			Src/IPC_HLE/WII_IPC_HLE_Device_usb_oh0.cpp
 			Src/IPC_HLE/WII_IPC_HLE_Device_usb_oh1.cpp
 			Src/IPC_HLE/WII_IPC_HLE_WiiMote.cpp
 			Src/IPC_HLE/WiiMote_HID_Attr.cpp
@@ -226,6 +230,7 @@ endif()
 
 if(LIBUSB_FOUND)
 	# Using shared LibUSB
+	set(SRCS    ${SRCS} Src/HW/USBReal.cpp)
 	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
 endif(LIBUSB_FOUND)
 

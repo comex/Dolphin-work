@@ -16,6 +16,7 @@
 // - Serialization code for anything complex has to be manually written.
 
 #include <map>
+#include <set>
 #include <vector>
 #include <list>
 #include <deque>
@@ -29,6 +30,28 @@ template <class T>
 struct LinkedListItem : public T
 {
 	LinkedListItem<T> *next;
+};
+
+struct TotallyPod {
+	typedef int IAmTotallyPod;
+};
+
+template <typename T, typename I>
+struct IsPod
+{
+	const static bool value = std::is_pod<T>::value;
+};
+
+template <typename T, typename U, typename I>
+struct IsPod<std::pair<T, U>, I>
+{
+	const static bool value = IsPod<T, int>::value && IsPod<U, int>::value;
+};
+
+template <typename T>
+struct IsPod<T, typename T::IAmTotallyPod>
+{
+	const static bool value = true;
 };
 
 // Wrapper class
@@ -83,6 +106,34 @@ public:
 		}
 	}
 
+	template <typename V>
+	void Do(std::set<V>& x)
+	{
+		u32 count = (u32)x.size();
+		Do(count);
+
+		switch (mode)
+		{
+		case MODE_READ:
+			for (x.clear(); count != 0; --count)
+			{
+				V value;
+				Do(value);
+				x.emplace(value);
+			}
+			break;
+
+		case MODE_WRITE:
+		case MODE_MEASURE:
+		case MODE_VERIFY:
+			for (auto itr = x.begin(); itr != x.end(); ++itr)
+			{
+				Do(*itr);
+			}
+			break;
+		}
+	}
+
 	template <typename T>
 	void DoContainer(T& x)
 	{
@@ -129,11 +180,11 @@ public:
 	void Do(T& x)
 	{
 		// Ideally this would be std::is_trivially_copyable, but not enough support yet
-		static_assert(std::is_pod<T>::value, "Only sane for POD types");
+		static_assert((IsPod<T, int>::value), "Only sane for POD types");
 		
 		DoVoid((void*)&x, sizeof(x));
 	}
-	
+
 	template <typename T>
 	void DoPOD(T& x)
 	{

@@ -37,6 +37,7 @@ LogManager::LogManager()
 	m_Log[LogTypes::PAD]				= new LogContainer("PAD",			"Pad");
 	m_Log[LogTypes::PIXELENGINE]		= new LogContainer("PE",			"PixelEngine");
 	m_Log[LogTypes::COMMANDPROCESSOR]	= new LogContainer("CP",			"CommandProc");
+	m_Log[LogTypes::USBINTERFACE]		= new LogContainer("USB",			"UsbInt");
 	m_Log[LogTypes::VIDEOINTERFACE]		= new LogContainer("VI",			"VideoInt");
 	m_Log[LogTypes::SERIALINTERFACE]	= new LogContainer("SI",			"SerialInt");
 	m_Log[LogTypes::PROCESSORINTERFACE]	= new LogContainer("PI",			"ProcessorInt");
@@ -62,7 +63,6 @@ LogManager::LogManager()
 	m_Log[LogTypes::WIIMOTE]			= new LogContainer("Wiimote",		"Wiimote");
 	m_Log[LogTypes::WII_IOB]			= new LogContainer("WII_IOB",		"WII IO Bridge");
 	m_Log[LogTypes::WII_IPC]			= new LogContainer("WII_IPC",		"WII IPC");
-	m_Log[LogTypes::WII_IPC_HID]		= new LogContainer("WII_IPC_HID",	"WII IPC HID");
 	m_Log[LogTypes::WII_IPC_HLE]		= new LogContainer("WII_IPC_HLE",	"WII IPC HLE");
 	m_Log[LogTypes::WII_IPC_DVD]		= new LogContainer("WII_IPC_DVD",	"WII IPC DVD");
 	m_Log[LogTypes::WII_IPC_ES]			= new LogContainer("WII_IPC_ES",	"WII IPC ES");
@@ -72,6 +72,7 @@ LogManager::LogManager()
 	m_Log[LogTypes::WII_IPC_NET]		= new LogContainer("WII_IPC_NET",	"WII IPC NET");
 	m_Log[LogTypes::WII_IPC_WC24]		= new LogContainer("WII_IPC_WC24",	"WII IPC WC24");
 	m_Log[LogTypes::WII_IPC_SSL]		= new LogContainer("WII_IPC_SSL",	"WII IPC SSL");
+	m_Log[LogTypes::WII_IPC_USB]		= new LogContainer("WII_IPC_USB",	"WII IPC USB");
 	m_Log[LogTypes::WII_IPC_WIIMOTE]	= new LogContainer("WII_IPC_WIIMOTE","WII IPC WIIMOTE");
 	m_Log[LogTypes::ACTIONREPLAY]		= new LogContainer("ActionReplay",	"ActionReplay");
 	m_Log[LogTypes::MEMCARD_MANAGER]	= new LogContainer("MemCard Manager", "MemCard Manager");
