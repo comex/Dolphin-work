@@ -37,7 +37,7 @@
 #include "HW/EXI.h"
 #include "HW/SystemTimers.h"
 
-#include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "IPC_HLE/WII_IPC_HLE_Device_usb_oh1.h"
 
 #include "PowerPC/PowerPC.h"
 #ifdef USE_GDBSTUB
@@ -409,8 +409,7 @@ void EmuThread()
 		// Activate wiimotes which don't have source set to "None"
 		for (unsigned int i = 0; i != MAX_BBMOTES; ++i)
 			if (g_wiimote_sources[i])
-				GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(true);
-
+				CWII_IPC_HLE_Device_usb_oh1_57e_305::MakeInstance()->AccessWiiMote(i | 0x100)->Activate(true);
 	}
 
 	// The hardware is initialized.

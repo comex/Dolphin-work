@@ -26,7 +26,7 @@
 #include "Core.h"
 #include "HW/DVDInterface.h"
 #include "HW/GCPad.h"
-#include "IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "IPC_HLE/WII_IPC_HLE_Device_usb_oh1.h"
 #include "State.h"
 #include "VolumeHandler.h"
 #include "Movie.h"
@@ -105,9 +105,11 @@ CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title
 	: wxFrame(parent, id, title, pos, size, style)
 {
 	// Give it an icon
+	/*
 	wxIcon IconTemp;
 	IconTemp.CopyFromBitmap(wxGetBitmapFromMemory(dolphin_ico32x32));
 	SetIcon(IconTemp);
+	*/
 }
 
 #ifdef _WIN32

@@ -6,26 +6,13 @@
 #include "StringUtil.h"
 
 #include "WII_IPC_HLE_WiiMote.h" // Core
-#include "WII_IPC_HLE_Device_usb.h"
+#include "WII_IPC_HLE_Device_usb_oh1.h"
 #include "../ConfigManager.h"
 #include "../Host.h"
 #include "../Core.h"
 #include "../HW/Wiimote.h"
 #include "l2cap.h" // Local
 #include "WiiMote_HID_Attr.h"
-
-static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = NULL;
-
-CWII_IPC_HLE_Device_usb_oh1_57e_305* GetUsbPointer()
-{
-	return s_Usb;
-}
-
-void SetUsbPointer(CWII_IPC_HLE_Device_usb_oh1_57e_305* ptr)
-{
-	s_Usb = ptr;
-}
-
 
 CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* _pHost, int _Number, bdaddr_t _BD, bool ready)
 	: m_HIDControlChannel_Connected(false)
@@ -906,7 +893,8 @@ namespace Core
 		DEBUG_LOG(WIIMOTE, "   Data: %s", ArrayToString(pData, _Size, 50).c_str());
 		DEBUG_LOG(WIIMOTE, "   Channel: %x", _channelID);
 
-		s_Usb->m_WiiMotes[_number].ReceiveL2capData(_channelID, _pData, _Size);
+		CWII_IPC_HLE_Device_usb_oh1_57e_305* Usb = CWII_IPC_HLE_Device_usb_oh1_57e_305::MakeInstance();
+		Usb->m_WiiMotes[_number].ReceiveL2capData(_channelID, _pData, _Size);
 	}
 }
 
