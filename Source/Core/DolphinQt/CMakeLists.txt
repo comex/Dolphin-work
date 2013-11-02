@@ -37,9 +37,10 @@ set(LIBS		core
 			z
 			sfml-network
 			SDL
-			GL
-			${XRANDR_LIBRARIES}
-			${X11_LIBRARIES})
+			${OPENGL_LIBRARIES}
+			${X11_LIBRARIES}
+			${XINPUT2_LIBRARIES}
+			${XRANDR_LIBRARIES})
 
 set(EXEGUI dolphin-emu-qt4)
 
