@@ -251,9 +251,7 @@ void DGameList::RefreshView()
 		platformItem->setSizeHint(Resources::GetPlatformPixmap(items[i].GetPlatform()).size()/2);
 		sourceModel->setItem(i, 0, platformItem);
 
-		QPixmap bannerPixmap = (items[i].GetImage().empty()) ?
-								Resources::GetPixmap(Resources::BANNER_MISSING) :
-								QPixmap::fromImage(QImage(&(items[i].GetImage()[0]), 96, 32, QImage::Format_RGB888));
+		QPixmap bannerPixmap = items[i].GetBitmap();
 		QStandardItem* bannerItem = new QStandardItem;
 		bannerItem->setData(QVariant::fromValue(bannerPixmap), Qt::DecorationRole);
 		bannerItem->setSizeHint(QSize(96, 34));
@@ -271,7 +269,7 @@ void DGameList::RefreshView()
 
 		int state;
 		IniFile ini;
-		ini.Load((std::string(File::GetUserPath(D_GAMECONFIG_IDX)) + (items[i].GetUniqueID()) + ".ini").c_str());
+		ini.Load((std::string(File::GetUserPath(D_GAMESETTINGS_IDX)) + (items[i].GetUniqueID()) + ".ini").c_str());
 		ini.Get("EmuState", "EmulationStateId", &state);
 		QStandardItem* ratingItem = new QStandardItem;
 		ratingItem->setData(QVariant::fromValue(Resources::GetRatingPixmap(state)), Qt::DecorationRole);
@@ -359,9 +357,9 @@ void DGameTable::RebuildGrid()
 	for (int i = 0; i < (int)items.size(); ++i)
 	{
 		QStandardItem* item = new QStandardItem;
-		if(!items[i].GetImage().empty())
+		if(items[i].GetBitmap().toImage().byteCount() != 0)
 		{
-			u8 const* src = &(items[i].GetImage()[0]);
+			u8 const* src = items[i].GetBitmap().toImage().bits();
 			QMap<u8 const*,QPixmap>::iterator it = pixmap_cache.find(src);
 			if (it == pixmap_cache.end())
 				it = pixmap_cache.insert(src, QPixmap::fromImage(QImage(src, 96, 32, QImage::Format_RGB888)).scaled(QSize(144,48), Qt::IgnoreAspectRatio, Qt::SmoothTransformation));

@@ -58,7 +58,7 @@ std::string DMainWindow::RequestBootFilename()
 {
 	// If a game is already selected, just return the filename
 	if (gameBrowser->GetSelectedISO() != NULL)
-		return gameBrowser->GetSelectedISO()->GetFileName().toStdString();
+		return gameBrowser->GetSelectedISO()->GetFileName();
 
 	// Otherwise, try the default ISO and then the previously booted ISO
 	SCoreStartupParameter& StartUp = SConfig::GetInstance().m_LocalCoreStartupParameter;
