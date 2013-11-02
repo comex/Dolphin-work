@@ -27,8 +27,29 @@ set(SRCS		Src/Config/ConfigAudio.cpp
 			Src/MainWindowEvents.cpp
 			Src/RenderWindow.cpp)
 
+if(USE_EGL)
+	set(SRCS ${SRCS} Src/GLInterface/Platform.cpp
+		Src/GLInterface/EGL.cpp)
+	if(USE_WAYLAND)
+		set(SRCS ${SRCS} Src/GLInterface/Wayland_Util.cpp)
+	endif()
+	if(USE_X11)
+		set(SRCS ${SRCS} Src/GLInterface/X11_Util.cpp)
+	endif()
+else()
+	if(WIN32)
+		set(SRCS ${SRCS} Src/GLInterface/WGL.cpp)
+	elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+		set(SRCS ${SRCS} Src/GLInterface/AGL.cpp)
+	else()
+		set(SRCS ${SRCS} Src/GLInterface/GLX.cpp
+			Src/GLInterface/X11_Util.cpp)
+
+	endif()
+endif()
+
 set(LIBS		core
-			lzo2
+			${LZO}
 			discio
 			bdisasm
 			inputcommon
