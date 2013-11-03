@@ -106,6 +106,7 @@ void AbstractGameBrowser::Rescan()
 		Extensions.push_back("*.iso");
 		Extensions.push_back("*.ciso");
 		Extensions.push_back("*.gcz");
+		Extensions.push_back("*.wbfs");
 	}
 	if (SConfig::GetInstance().m_ListWad)
 		Extensions.push_back("*.wad");
