@@ -122,7 +122,7 @@ GameListItem::GameListItem(std::string rFileName)
 
 	if (!m_pImage.empty())
 	{
-		QPixmap Image = QPixmap::fromImage(QImage(m_pImage.data(), 96, 32, QImage::Format_RGB888));
+		QPixmap Image = QPixmap::fromImage(QImage(m_pImage.data(), m_ImageWidth, m_ImageHeight, QImage::Format_RGB888));
 		double Scale = 1.0; // previously called WxUtils::GetCurrentBitmapLogicalScale();
 		Image = Image.scaled(DVD_BANNER_WIDTH * Scale, DVD_BANNER_HEIGHT * Scale);
 		m_Bitmap = Image;
