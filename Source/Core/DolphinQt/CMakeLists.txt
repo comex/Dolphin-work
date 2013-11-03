@@ -57,10 +57,13 @@ set(LIBS		core
 			audiocommon
 			z
 			sfml-network
-			${OPENGL_LIBRARIES}
-			${X11_LIBRARIES}
+			${OPENGL_LIBRARIES})
+
+if(USE_X11)
+	set(LIBS  ${LIBS} ${X11_LIBRARIES}
 			${XINPUT2_LIBRARIES}
 			${XRANDR_LIBRARIES})
+endif()
 
 if(SDL2_FOUND)
 	# Using shared SDL2
@@ -75,7 +78,11 @@ else(SDL2_FOUND)
 	endif()
 endif()
 
-set(EXEGUI dolphin-emu-qt4)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	set(EXEGUI DolphinQt)
+else()
+	set(EXEGUI dolphin-emu-qt4)
+endif()
 
 qt_wrap_cpp(${EXEGUI} MOC_SRCS	Src/Config/ConfigAudio.h
 				Src/Config/ConfigGeneral.h
@@ -89,6 +96,35 @@ qt_wrap_cpp(${EXEGUI} MOC_SRCS	Src/Config/ConfigAudio.h
 				Src/LogWindow.h
 				Src/MainWindow.h
 				Src/RenderWindow.h)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	# Link against OS X system frameworks.
+	list(APPEND LIBS
+		${APPKIT_LIBRARY}
+		${AU_LIBRARY}
+		${COREAUDIO_LIBRARY}
+		${COREFUND_LIBRARY}
+		${CORESERV_LIBRARY}
+		${IOB_LIBRARY}
+		${IOK_LIBRARY}
+		)
+	# Add resource files to application bundle.
+	set(RESOURCES resources/Dolphin.icns)
+	list(APPEND SRCS ${RESOURCES})
+	set_source_files_properties(${RESOURCES} PROPERTIES
+		MACOSX_PACKAGE_LOCATION Resources)
+endif()
+
 add_executable(${EXEGUI} ${SRCS} ${MOC_SRCS})
 target_link_libraries(${EXEGUI} ${LIBS} ${QT_LIBRARIES})
-install(TARGETS ${EXEGUI} RUNTIME DESTINATION ${bindir})
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	include(BundleUtilities)
+	set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${EXEGUI}.app)
+	# Ask for an application bundle.
+	set_target_properties(${EXEGUI} PROPERTIES
+		MACOSX_BUNDLE true
+		MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
+		)
+else()
+	install(TARGETS ${EXEGUI} RUNTIME DESTINATION ${bindir})
+endif()

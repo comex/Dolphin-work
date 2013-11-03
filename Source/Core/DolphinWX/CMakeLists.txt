@@ -250,7 +250,7 @@ else()
 				COMMAND ln -nfs ../../../../Data/Sys ${BUNDLE_PATH}/Contents/Resources/Sys
 				VERBATIM
 				)
-			add_custom_target(CopyDataIntoBundle ALL
+			add_custom_target(LinkDataIntoBundle ALL
 				DEPENDS ${BUNDLE_PATH}/Contents/Resources/Sys
 				)
 		endif()

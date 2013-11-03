@@ -1,7 +1,9 @@
 #include <Foundation/Foundation.h>
 #include <IOKit/hid/IOHIDLib.h>
 #include <Cocoa/Cocoa.h>
+#if HAVE_WX
 #include <wx/wx.h> // wxWidgets
+#endif
 
 #include "OSXKeyboard.h"
 
@@ -43,7 +45,17 @@ Keyboard::Keyboard(IOHIDDeviceRef device, std::string name, int index, void *win
 		CFRelease(elements);
 	}
 
-	m_windowid = [[(NSView *)(((wxWindow *)window)->GetHandle()) window] windowNumber];
+	NSView *view;
+	// ugh
+#if HAVE_WX
+	view = ((wxWindow *)window)->GetHandle();
+#elif defined(QT_CORE_LIB)
+	view = (NSView *)window;
+#else
+	// fix this when MainNoGUI.cpp implements Host_GetRenderHandle
+	view = nil;
+#endif
+	m_windowid = [[view window] windowNumber];
 
 	// cursor, with a hax for-loop
 	for (unsigned int i=0; i<4; ++i)

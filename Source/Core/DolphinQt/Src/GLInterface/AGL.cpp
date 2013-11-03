@@ -20,7 +20,9 @@
 #include "RenderBase.h"
 #include "ConfigManager.h"
 
+#if HAVE_WX
 #include <wx/panel.h>
+#endif
 
 #include "VertexShaderManager.h"
 #include "../GLInterface.h"
@@ -38,7 +40,14 @@ bool cInterfaceAGL::Create(void *&window_handle)
 	int _tx, _ty, _twidth, _theight;
 	Host_GetRenderWindowSize(_tx, _ty, _twidth, _theight);
 
+#if HAVE_WX
 	GLWin.cocoaWin = (NSView*)(((wxPanel*)window_handle)->GetHandle());
+#elif defined(QT_CORE_LIB)
+	GLWin.cocoaWin = (NSView *)window_handle;
+#else
+	// fix this when MainNoGUI.cpp implements Host_GetRenderHandle
+	GLWin.cocoaWin = nil;
+#endif
 
 	// Enable high-resolution display support.
 	[GLWin.cocoaWin setWantsBestResolutionOpenGLSurface:YES];
